@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Friflo.Engine.ECS.Utils;
 using Friflo.Json.Fliox;
@@ -92,7 +94,9 @@ public class SystemGroup : BaseSystem, IEnumerable
         if (system == null)             throw new ArgumentNullException(nameof(system));
         if (system is SystemRoot)       throw ExceptionUtils.ArgumentException($"{nameof(SystemRoot)} must not be a child system", nameof(system));
         if (system.ParentGroup != null) throw ExceptionUtils.ArgumentException($"system already added to Group '{system.ParentGroup.Name}'", nameof(system));
+        
         childSystems.Add(system);
+        SortSystems();
         system.SetParentAndRoot(this);
         // Send event. See: SEND_EVENT notes
         CastSystemAdded(system);
@@ -113,6 +117,7 @@ public class SystemGroup : BaseSystem, IEnumerable
         } else {
             childSystems.Insert(index, system);
         }
+        SortSystems();
         system.SetParentAndRoot(this);
         // Send event. See: SEND_EVENT notes
         CastSystemAdded(system);
@@ -131,6 +136,74 @@ public class SystemGroup : BaseSystem, IEnumerable
         system.ClearParentAndRoot();
         // Send event. See: SEND_EVENT notes
         CastSystemRemoved(system, oldRoot, this);
+    }
+
+    void SortSystems()
+    {
+        var systems = childSystems;
+        var systemsTypes = new List<Type>(systems.Count);
+        for (int i = 0; i < systems.Count; i++) 
+            systemsTypes.Add(systems[i].GetType());
+        
+        Iteration:
+        for (int selfIndex = 0; selfIndex < systems.Count; selfIndex++)
+        {
+            var sortAfter = systems[selfIndex].SortAfter;
+            var sortBefore = systems[selfIndex].SortBefore;
+                
+            // check if system should be sorted after any other system
+            // compare in reverse order to minimize amount of moves
+            for (int otherIndex = systems.Count - 1; otherIndex > selfIndex; otherIndex--)
+            {
+                if (sortAfter.Contains(systemsTypes[otherIndex]))
+                {
+                    var self = systems[selfIndex];
+                    var selfType = systemsTypes[selfIndex];
+                    systems.RemoveAt(selfIndex);
+                    systemsTypes.RemoveAt(selfIndex);
+                    systems.Insert(otherIndex, self);
+                    systemsTypes.Insert(otherIndex, selfType);
+                    goto Iteration;
+                }
+            }
+            
+            // check if system should be sorted before any other system
+            // compare in forward order to minimize amount of moves
+            for (int otherIndex = 0; otherIndex < selfIndex; otherIndex++)
+            {
+                if (sortBefore.Contains(systemsTypes[otherIndex]))
+                {
+                    var self = systems[selfIndex];
+                    var selfType = systemsTypes[selfIndex];
+                    systems.RemoveAt(selfIndex);
+                    systemsTypes.RemoveAt(selfIndex);
+                    systems.Insert(otherIndex, self);
+                    systemsTypes.Insert(otherIndex, selfType);
+                    goto Iteration;
+                }
+            }
+        }
+    }
+
+    internal bool IsSystemsSorted()
+    {
+        var systems = childSystems;
+        var systemsTypes = systems.Select(s => s.GetType()).ToArray().AsSpan();
+        for (int i = 0; i < systems.Count; i++)
+        {
+            var sortAfter = systems[i].SortAfter;
+            var sortBefore = systems[i].SortBefore;
+            
+            var systemsAfter = systemsTypes.Slice(0, i);
+            var systemsBefore = systemsTypes.Slice(i + 1);
+            
+            if (sortAfter.ContainsAny(systemsBefore))
+                return false;
+            if (sortBefore.ContainsAny(systemsAfter))
+                return false;
+        }
+
+        return true;
     }
     #endregion
     

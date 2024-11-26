@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.Linq;
 using System.Text;
 using Friflo.Json.Fliox;
 using static System.Diagnostics.DebuggerBrowsableState;
@@ -17,7 +18,7 @@ namespace Friflo.Engine.ECS.Systems;
 /// <summary>
 /// Base class for all systems either a query system, a custom system or a system group.
 /// </summary>
-public abstract class BaseSystem
+public abstract class BaseSystem : IComparable<BaseSystem>, IComparable<Type>
 {
 #region properties
     /// <summary>The <see cref="UpdateTick"/> passed to <see cref="SystemGroup.Update"/>. </summary>
@@ -40,6 +41,9 @@ public abstract class BaseSystem
 
     /// <summary> Provide execution statistics of a system if <see cref="SystemGroup.MonitorPerf"/> is enabled. </summary>
     [Browse(Never)]             public ref readonly SystemPerf  Perf        => ref perf;
+
+    public virtual Type[] SortAfter => Array.Empty<Type>();
+    public virtual Type[] SortBefore => Array.Empty<Type>();
     
                                 internal            View        System      => view ??= new View(this);
     #endregion
@@ -303,4 +307,23 @@ public abstract class BaseSystem
         sb.Append('\n');
     }
     #endregion
+
+    public int CompareTo(BaseSystem other)
+    {
+        var otherType = other.GetType();
+        if (SortAfter.Contains(otherType)) return 1;
+        if (SortBefore.Contains(otherType)) return -1;
+        
+        var selfType = GetType();
+        if (other.SortAfter.Contains(selfType)) return -1;
+        if (other.SortBefore.Contains(selfType)) return 1;
+        return 0;
+    }
+
+    public int CompareTo(Type other)
+    {
+        if (SortAfter.Contains(other)) return 1;
+        if (SortBefore.Contains(other)) return -1;
+        return 0;
+    }
 }

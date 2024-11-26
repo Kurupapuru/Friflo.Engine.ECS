@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 
+using System;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
@@ -64,5 +65,12 @@ public static class CollectionExtensions
         }
         sb.Append(" }");
         return sb.ToString();
+    }
+
+    internal static bool ContainsAny<T>(this T[] source, Span<T> otherSpan)
+    {
+        foreach (var item in otherSpan)
+            if (source.Contains(item)) return true;
+        return false;
     }
 }
