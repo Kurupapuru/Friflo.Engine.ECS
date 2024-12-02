@@ -39,7 +39,7 @@ public class SystemGroup : BaseSystem, IEnumerable
     [Browse(Never)] public          ReadOnlyList<BaseSystem>    ChildSystems    => childSystems;
 
     /// <summary> The <see cref="ECS.CommandBuffer"/>'s shared by all <see cref="ChildSystems"/>. </summary>
-                    internal        ReadOnlyList<CommandBuffer> CommandBuffers  => commandBuffers; // only for debug view
+                    public        ReadOnlyList<CommandBuffer> CommandBuffers  => commandBuffers; // only for debug view
     
                     // only for display in debugger
                     internal        Item[]                      AllSystems      => Item.GetAllSystems(this);
