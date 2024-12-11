@@ -12,11 +12,11 @@ namespace Friflo.Engine.ECS.Relations;
 
 
 /// Contains a single <see cref="Archetype"/> with a single <see cref="StructHeap{T}"/><br/>
-internal class EntityRelationLinks<TRelationComponent> : EntityRelations<TRelationComponent, Entity>
-    where TRelationComponent : struct, ILinkRelation
+internal class EntityLinkRelations<TRelation> : GenericEntityRelations<TRelation, Entity>
+    where TRelation : struct, ILinkRelation
 {
-    /// Instance created at <see cref="EntityRelations.GetEntityRelations"/>
-    public EntityRelationLinks(ComponentType componentType, Archetype archetype, StructHeap heap)
+    /// Instance created at <see cref="AbstractEntityRelations.GetEntityRelations"/>
+    public EntityLinkRelations(ComponentType componentType, Archetype archetype, StructHeap heap)
         : base(componentType, archetype, heap)
     {
         linkEntityMap   = new Dictionary<int, IdArray>();
@@ -24,11 +24,11 @@ internal class EntityRelationLinks<TRelationComponent> : EntityRelations<TRelati
     }
     
     /// Expect: component is present
-    internal override ref TComponent GetEntityRelation<TComponent>(int id, int targetId)
+    internal override ref T GetEntityRelation<T>(int id, int targetId)
     {
         Entity target   = new Entity(store, targetId);
         int position    = FindRelationPosition(id, target, out _, out _);
-        return ref ((StructHeap<TComponent>)heap).components[position];
+        return ref ((StructHeap<T>)heap).components[position];
     }
     
     internal override void AddIncomingRelations(int target, List<EntityLink> result)
@@ -47,9 +47,9 @@ internal class EntityRelationLinks<TRelationComponent> : EntityRelations<TRelati
 #region mutation
 
     /// <returns>true - component is newly added to the entity.<br/> false - component is updated.</returns>
-    internal override bool AddComponent<TComponent>(int id, in TComponent component)
+    internal override bool AddComponent<T>(int id, in T component)
     {
-        Entity target   = RelationUtils<TComponent, Entity>.GetRelationKey(component);
+        Entity target   = RelationUtils<T, Entity>.GetRelationKey(component);
         bool added      = true;
         int position    = FindRelationPosition(id, target, out var positions, out _);
         if (position >= 0) {
@@ -59,7 +59,7 @@ internal class EntityRelationLinks<TRelationComponent> : EntityRelations<TRelati
         position = AddEntityRelation(id, positions);
         LinkRelationUtils.AddComponentValue(id, target.Id, this);
     AssignComponent:
-        ((StructHeap<TComponent>)heap).components[position] = component;
+        ((StructHeap<T>)heap).components[position] = component;
         return added;
     }
 
@@ -102,7 +102,7 @@ internal class EntityRelationLinks<TRelationComponent> : EntityRelations<TRelati
     private void RemoveIncomingLinks(IdArray positions, int id)
     {
         var positionsSpan   = positions.GetSpan(idHeap, store);
-        var components      = ((StructHeap<TRelationComponent>)heap).components;
+        var components      = ((StructHeap<TRelation>)heap).components;
         var linkMap         = linkEntityMap;
         foreach (var position in positionsSpan)
         {

@@ -56,6 +56,14 @@ public static class Test_SerializeEntity
     }
 }]";
     
+    private const string JsonInvalidId =
+        @"[{
+    ""id"": 1,
+    ""components"": {
+        ""EntityReference"": {""entity"":""xxx""}
+    }
+}]";
+    
     
     #region read Entity
     [Test]
@@ -65,7 +73,8 @@ public static class Test_SerializeEntity
         var serializer  = new EntitySerializer();
         var stream      = Test_Serializer.StringAsStream(JsonEntityRefPresent);
         
-        serializer.ReadIntoStore(store, stream); // referenced EntityReference.entity 1002 is already deserialized
+        var result = serializer.ReadIntoStore(store, stream); // referenced EntityReference.entity 1002 is already deserialized
+        IsNull(result.error);
         
         AreEqual(2, store.Count);
         
@@ -83,7 +92,8 @@ public static class Test_SerializeEntity
         var serializer  = new EntitySerializer();
         var stream      = Test_Serializer.StringAsStream(JsonEntityRefMissing);
         
-        serializer.ReadIntoStore(store, stream);
+        var result = serializer.ReadIntoStore(store, stream);
+        IsNull(result.error);
         
         AreEqual(1, store.Count);
         
@@ -100,7 +110,8 @@ public static class Test_SerializeEntity
         var serializer  = new EntitySerializer();
         var stream      = Test_Serializer.StringAsStream(JsonEntityRefNotPresent);
         
-        serializer.ReadIntoStore(store, stream);
+        var result = serializer.ReadIntoStore(store, stream);
+        IsNull(result.error);
         
         AreEqual(2, store.Count);
         
@@ -117,7 +128,8 @@ public static class Test_SerializeEntity
         var serializer  = new EntitySerializer();
         var stream      = Test_Serializer.StringAsStream(JsonEntityRefNull);
         
-        serializer.ReadIntoStore(store, stream);
+        var result = serializer.ReadIntoStore(store, stream);
+        IsNull(result.error);
         
         AreEqual(1, store.Count);
         
@@ -126,6 +138,17 @@ public static class Test_SerializeEntity
         AreEqual(0, entityRef.Id);
         
         IsTrue(entityRef.IsNull);
+    }
+    
+    [Test]
+    public static void Test_SerializeEntity_read_invalid_id()
+    {
+        var store       = new EntityStore();
+        var serializer  = new EntitySerializer();
+        var stream      = Test_Serializer.StringAsStream(JsonInvalidId);
+        
+        var result = serializer.ReadIntoStore(store, stream);
+        AreEqual("'components[EntityReference]' - Cannot assign string to Entity. got: 'xxx' path: 'entity' at position: 15 path: '[0]' at position: 87", result.error);
     }
     #endregion
     

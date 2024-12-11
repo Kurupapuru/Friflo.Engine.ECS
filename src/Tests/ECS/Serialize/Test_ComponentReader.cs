@@ -228,11 +228,11 @@ public static class Test_ComponentReader
         var store       = new EntityStore(PidType.UsePidAsId);
         var converter   = EntityConverter.Default;
         
-        var json    = new JsonValue("{ \"pos\": [] }");
+        var json    = new JsonValue("{ \"pos\": 123 }");
         var node    = new DataEntity { pid = 10, components = json };
         var entity  = converter.DataEntityToEntity(node, store, out var error);
         NotNull(entity);
-        AreEqual("'components' element must be an object. was ArrayStart. id: 10, component: 'pos'", error);
+        AreEqual("'components' member must be object or array. was ValueNumber. id: 10, component: 'pos'", error);
     }
     
     [Test]
@@ -244,7 +244,7 @@ public static class Test_ComponentReader
         var node    = new DataEntity { pid = 10, components = new JsonValue("123") };
         var entity  = converter.DataEntityToEntity(node, store, out var error);
         NotNull(entity);
-        AreEqual("expect 'components' == object or null. id: 10. was: ValueNumber", error);
+        AreEqual("expect 'components' == object, array or null. id: 10. was: ValueNumber", error);
         
         node        = new DataEntity { pid = 10, components = new JsonValue("invalid") };
         entity      = converter.DataEntityToEntity(node, store, out error);

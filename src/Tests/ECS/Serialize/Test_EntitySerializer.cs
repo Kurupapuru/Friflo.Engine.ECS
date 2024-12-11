@@ -113,6 +113,7 @@ public static class Test_Serializer
             var fileName    = TestUtils.GetBasePath() + "assets/read_scene.json";
             var file        = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             var result      = serializer.ReadIntoStore(store, file);
+            IsNull(result.error);
             file.Close();
             AssertReadIntoStoreResult(result, store);
         }
@@ -265,12 +266,12 @@ public static class Test_Serializer
         stream.Close();
     }
     
-    internal static string MemoryStreamAsString(MemoryStream stream) {
+    public static string MemoryStreamAsString(MemoryStream stream) {
         stream.Flush();
         return Encoding.UTF8.GetString(stream.GetBuffer(), 0, (int)stream.Length);
     }
     
-    internal static Stream StringAsStream(string json) {
+    public static Stream StringAsStream(string json) {
         var bytes = Encoding.UTF8.GetBytes(json);
         var stream = new MemoryStream(bytes.Length);
         stream.Write(bytes);
@@ -289,6 +290,7 @@ public static class Test_Serializer
         var fileName    = TestUtils.GetBasePath() + "assets/read_unknown_members.json";
         var file        = new FileStream(fileName, FileMode.Open, FileAccess.Read);
         var result      = serializer.ReadIntoStore(store, file);
+        IsNull(result.error);
         file.Close();
         AssertReadIntoStoreResult(result, store);
     }

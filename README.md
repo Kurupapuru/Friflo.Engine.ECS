@@ -31,6 +31,9 @@ Performance Ratio - see [C# ECS Benchmark](https://github.com/friflo/ECS.CSharp.
 
 ## News
 
+- [x] Breaking changes in `3.0.0-preview.16`
+  > renamed `IRelationComponent<>` -> `IRelation<>`. See [Wiki ⋅ Relations](https://friflo.gitbook.io/friflo.engine.ecs/examples/component-types#relations)
+
 - [x] ![new](docs/images/new.svg) Finally **Friflo.Engine.ECS** is now in its own new repository!  
   The ECS is moved including its git history. Everything not related to the ECS is omitted.
 
@@ -194,6 +197,10 @@ All query optimizations are using the same `query` but with different enumeratio
 
 
 ## **⌘ Component Types**
+
+> [!IMPORTANT]
+> Breaking changes in `3.0.0-preview.16`  
+> renamed `IRelationComponent<>` -> `IRelation<>`. See [Wiki ⋅ Relations](https://friflo.gitbook.io/friflo.engine.ecs/examples/component-types#relations)
 
 ![new](docs/images/new.svg) in **Friflo.Engine.ECS v3.0.0-preview.2**
 
@@ -406,7 +413,7 @@ See [Benchmark results](docs/doraku-benchmark.md).
 
 **License**
 
-This project is licensed under LGPLv3.  
+This project is licensed under MIT.  
 
 Friflo.Engine.ECS  
 Copyright © 2024   Ullrich Praetz - https://github.com/friflo
